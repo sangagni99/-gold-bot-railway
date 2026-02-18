@@ -1,5 +1,4 @@
 import os
-import asyncio
 import requests
 from flask import Flask, request
 from telegram import Update, Bot
@@ -10,13 +9,12 @@ def create_app():
     TOKEN = os.environ.get('BOT_TOKEN', '')
     bot = Bot(token=TOKEN)
     
-    # Auto-set webhook
+    # Auto-set webhook (sync)
     railway_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')
     if railway_domain and TOKEN:
         try:
             webhook_url = f"https://{railway_domain}/webhook"
-            # Use asyncio untuk set webhook
-            asyncio.run(bot.set_webhook(webhook_url))
+            bot.set_webhook(webhook_url)
             print(f"Webhook set: {webhook_url}")
         except Exception as e:
             print(f"Webhook error: {e}")
@@ -34,70 +32,45 @@ def create_app():
                 chat_id = update.message.chat_id
                 text = update.message.text
                 
-                # Buat event loop untuk async operations
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                
+                # Sync send_message (no async/await)
                 if text == '/start':
-                    loop.run_until_complete(
-                        bot.send_message(
-                            chat_id, 
-                            "🌟 *EIDOLON-77 GOLD BOT*\n\n"
-                            "Command:\n"
-                            "/analyze - Analisis XAUUSD\n"
-                            "/price - Harga terkini\n"
-                            "/help - Bantuan",
-                            parse_mode='Markdown'
-                        )
+                    bot.send_message(
+                        chat_id, 
+                        "🌟 *EIDOLON-77 GOLD BOT*\n\n"
+                        "Command:\n"
+                        "/analyze - Analisis XAUUSD\n"
+                        "/price - Harga terkini\n"
+                        "/help - Bantuan",
+                        parse_mode='Markdown'
                     )
                 
                 elif text == '/analyze':
-                    loop.run_until_complete(
-                        bot.send_message(
-                            chat_id,
-                            "📊 *ANALISIS XAUUSD*\n\n"
-                            "💰 Price: `2034.50`\n"
-                            "📈 Trend: *BULLISH*\n"
-                            "🎯 RSI: 58.3 (Neutral)\n\n"
-                            "AI Insight: Momentum positif terlihat. "
-                            "Pertimbangkan entry di pullback ke 2030 "
-                            "dengan SL di 2025.",
-                            parse_mode='Markdown'
-                        )
+                    bot.send_message(
+                        chat_id,
+                        "📊 *ANALISIS XAUUSD*\n\n"
+                        "💰 Price: `2034.50`\n"
+                        "📈 Trend: *BULLISH*\n"
+                        "🎯 RSI: 58.3 (Neutral)\n\n"
+                        "AI Insight: Momentum positif.",
+                        parse_mode='Markdown'
                     )
                 
                 elif text == '/price':
-                    loop.run_until_complete(
-                        bot.send_message(
-                            chat_id,
-                            "💰 *XAUUSD*: `2034.50`\n"
-                            "⏱️ Update: Live",
-                            parse_mode='Markdown'
-                        )
+                    bot.send_message(
+                        chat_id,
+                        "💰 *XAUUSD*: `2034.50`",
+                        parse_mode='Markdown'
                     )
                 
                 elif text == '/help':
-                    loop.run_until_complete(
-                        bot.send_message(
-                            chat_id,
-                            "🤖 *BANTUAN*\n\n"
-                            "Bot ini memberikan analisis gold trading.\n\n"
-                            "FREE: 5 analisis/hari\n"
-                            "PRO: Unlimited (hubungi admin)",
-                            parse_mode='Markdown'
-                        )
+                    bot.send_message(
+                        chat_id,
+                        "🤖 *BANTUAN*\n\nFREE: 5 analisis/hari\nPRO: Unlimited",
+                        parse_mode='Markdown'
                     )
                 
                 else:
-                    loop.run_until_complete(
-                        bot.send_message(
-                            chat_id,
-                            "❓ Command tidak dikenal.\n"
-                            "Ketik /help untuk bantuan."
-                        )
-                    )
-                
-                loop.close()
+                    bot.send_message(chat_id, "❓ Ketik /help untuk bantuan.")
             
             return 'OK'
         except Exception as e:
@@ -105,4 +78,3 @@ def create_app():
             return 'ERROR', 500
     
     return app
-                
